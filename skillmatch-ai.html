@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SkillMatch AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+::-webkit-scrollbar{width:0;height:0}
+html,body{height:100%;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+input,button{font-family:inherit}
+input::placeholder{color:var(--ter)}
+input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px var(--raised) inset;-webkit-text-fill-color:var(--text)}
+
+/* ── THEME VARIABLES ── */
+body.dark{
+  --bg:#0B0B0E; --surface:#141418; --raised:#1C1C22; --high:#242430;
+  --border:rgba(255,255,255,0.06); --borderHi:rgba(255,255,255,0.12);
+  --text:#F0EFE8; --sec:#8A8A94; --ter:#4A4A54;
+  --accent:#E8824A; --accentLo:rgba(232,130,74,0.12); --accentMd:rgba(232,130,74,0.24);
+  --green:#5CB87A; --greenLo:rgba(92,184,122,0.12);
+  --blue:#4A90E8; --blueLo:rgba(74,144,232,0.12);
+  --gold:#D4A843; --goldLo:rgba(212,168,67,0.12);
+  --purple:#9B72CF; --purpleLo:rgba(155,114,207,0.12);
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 32px rgba(0,0,0,.3);
+  --shadowSm:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2);
+}
+body.light{
+  --bg:#F6F5F1; --surface:#FFFFFF; --raised:#F0EEE8; --high:#E8E6DF;
+  --border:rgba(0,0,0,0.06); --borderHi:rgba(0,0,0,0.12);
+  --text:#0F0F12; --sec:#6B6B75; --ter:#ABABB5;
+  --accent:#D4661E; --accentLo:rgba(212,102,30,0.08); --accentMd:rgba(212,102,30,0.16);
+  --green:#2E8B57; --greenLo:rgba(46,139,87,0.08);
+  --blue:#2563EB; --blueLo:rgba(37,99,235,0.08);
+  --gold:#B8860B; --goldLo:rgba(184,134,11,0.08);
+  --purple:#7C3AED; --purpleLo:rgba(124,58,237,0.08);
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 8px 32px rgba(0,0,0,.06);
+  --shadowSm:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+}
+
+/* ── LAYOUT ── */
+#app{max-width:430px;margin:0 auto;min-height:100dvh;background:var(--bg);color:var(--text);position:relative;overflow:hidden}
+.screen{display:none;flex-direction:column;min-height:100dvh;background:var(--bg)}
+.screen.active{display:flex}
+.scroll-body{flex:1;overflow-y:auto;padding-bottom:80px}
+
+/* ── TYPOGRAPHY ── */
+.display{font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:-0.03em}
+.label-caps{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.anim-fadeup{animation:fadeUp .6s ease both}
+.anim-pulse{animation:pulse 2.2s ease infinite}
+.sk{animation:shimmer 1.4s ease infinite;background:var(--raised);border-radius:8px}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border-radius:20px;border:1px solid var(--border);box-shadow:var(--shadow)}
+.card-sm{background:var(--surface);border-radius:16px;border:1px solid var(--border);box-shadow:var(--shadowSm)}
+
+/* ── BUTTONS ── */
+.btn-primary{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border:none;cursor:pointer;border-radius:99px;font-weight:600;
+  background:var(--accent);color:#fff;padding:14px 28px;font-size:15px;
+  box-shadow:0 4px 20px var(--accentMd);transition:all .2s ease;
+  font-family:'Cormorant Garamond',serif;letter-spacing:-0.01em;
+}
+.btn-primary:active{transform:scale(0.96)}
+.btn-ghost{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border:1.5px solid var(--accentMd);cursor:pointer;border-radius:99px;
+  background:transparent;color:var(--accent);padding:11px 20px;font-size:13px;font-weight:600;
+  transition:all .2s ease;
+}
+.btn-ghost:active{transform:scale(0.96)}
+.btn-muted{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--border);cursor:pointer;border-radius:99px;
+  background:var(--raised);color:var(--text);padding:14px 20px;font-size:14px;font-weight:600;
+  transition:all .2s ease;
+}
+.btn-muted:active{transform:scale(0.96)}
+.btn-full{width:100%}
+
+/* ── INPUTS ── */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:11px;font-weight:600;color:var(--sec);letter-spacing:.07em;text-transform:uppercase}
+.field input{background:var(--raised);border:1.5px solid var(--border);border-radius:14px;padding:13px 16px;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
+.field input:focus{border-color:var(--accent)}
+
+/* ── CHIPS & PILLS ── */
+.chip{display:inline-flex;align-items:center;padding:9px 16px;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;user-select:none;transition:all .18s ease;border:1.5px solid var(--border);background:var(--raised);color:var(--sec)}
+.chip.selected{background:var(--accentLo);border-color:var(--accent);color:var(--accent)}
+.chip:active{transform:scale(0.96)}
+.pill{display:inline-flex;align-items:center;padding:4px 11px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;background:var(--raised);border:1px solid var(--border);color:var(--sec)}
+.pill-green{background:var(--greenLo);border-color:rgba(92,184,122,.3);color:var(--green)}
+.pill-blue{background:var(--blueLo);border-color:rgba(74,144,232,.3);color:var(--blue)}
+.pill-gold{background:var(--goldLo);border-color:rgba(212,168,67,.3);color:var(--gold)}
+.pill-purple{background:var(--purpleLo);border-color:rgba(155,114,207,.3);color:var(--purple)}
+.pill-accent{background:var(--accentLo);border-color:var(--accentMd);color:var(--accent)}
+
+/* ── PROGRESS BAR ── */
+.bar-wrap{background:var(--border);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+
+/* ── LOGO BOX ── */
+.logo-box{border-radius:14px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;font-family:inherit}
+
+/* ── BOTTOM NAV ── */
+#bottom-nav{
+  position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+  width:calc(100% - 32px);max-width:398px;
+  background:rgba(20,20,24,.85);backdrop-filter:blur(20px);
+  border-radius:24px;border:1px solid var(--borderHi);
+  display:flex;padding:6px;box-shadow:var(--shadow);z-index:100;
+}
+body.light #bottom-nav{background:rgba(255,255,255,.85)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;border-radius:18px;cursor:pointer;transition:all .2s;border:none;background:transparent;color:var(--ter);user-select:none}
+.nav-btn.active{background:var(--accentLo);color:var(--accent)}
+.nav-btn span.icon{font-size:18px;line-height:1}
+.nav-btn span.lbl{font-size:10px;font-weight:600;letter-spacing:.02em}
+
+/* ── THEME TOGGLE ── */
+#theme-btn{
+  position:fixed;top:16px;right:16px;z-index:200;
+  width:36px;height:36px;border-radius:99px;
+  background:rgba(20,20,24,.7);backdrop-filter:blur(12px);
+  border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;box-shadow:var(--shadowSm);transition:all .2s;
+}
+body.light #theme-btn{background:rgba(255,255,255,.8)}
+
+/* ── TOASTS ── */
+#toasts{position:fixed;top:60px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:300px}
+.toast{padding:11px 16px;border-radius:14px;font-size:13px;font-weight:600;box-shadow:var(--shadow);animation:toastIn .3s ease;border:1px solid var(--borderHi)}
+.toast-success{background:var(--green);color:#fff}
+.toast-error{background:var(--accent);color:#fff}
+.toast-info{background:var(--surface);color:var(--text)}
+
+/* ── SKILL LEVEL BTNS ── */
+.level-btn{flex:1;padding:7px 0;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;transition:all .18s;border:1.5px solid var(--border);background:var(--raised);color:var(--sec)}
+.level-btn.active{border-color:var(--accent);background:var(--accentLo);color:var(--accent)}
+
+/* ── FILTER / SORT BTNS ── */
+.filter-btn{padding:7px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;border:1px solid var(--border);background:var(--surface);color:var(--sec);transition:all .2s;user-select:none}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── MATCH RING SVG ── */
+.ring-bg{fill:none;stroke:var(--border)}
+.ring-fg{fill:none;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
+
+/* ── SETTINGS ROW ── */
+.settings-row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .2s}
+.settings-row:last-child{border-bottom:none}
+.settings-row:active{background:var(--raised)}
+.settings-icon{width:36px;height:36px;border-radius:10px;background:var(--raised);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+
+/* ── JOB CARD ── */
+.job-card{background:var(--surface);border-radius:20px;padding:20px;border:1px solid var(--border);box-shadow:var(--shadowSm);cursor:pointer;transition:all .2s;margin-bottom:14px}
+.job-card:active{transform:scale(0.98);box-shadow:none}
+
+/* ── COURSE CARD ── */
+.course-thumb{position:relative;aspect-ratio:16/9;background:var(--raised);overflow:hidden}
+.course-thumb img{width:100%;height:100%;object-fit:cover}
+.course-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.8) 0,transparent 55%)}
+.course-thumb .badge-yt{position:absolute;top:10px;right:10px;background:#CC0000;color:#fff;border-radius:8px;padding:3px 8px;font-size:10px;font-weight:800}
+.course-meta{position:absolute;bottom:14px;left:14px}
+.course-meta .skill-tag{font-size:11px;font-weight:600;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.course-meta .course-title{font-size:14px;font-weight:600;color:#fff;line-height:1.3}
+
+/* ── ROLE CARD ── */
+.role-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:18px 14px;cursor:pointer;transition:all .2s;user-select:none}
+.role-card.selected{background:var(--accentLo);border-color:var(--accent)}
+.role-card:active{transform:scale(0.97)}
+
+/* ── HERO SECTION (SPLASH) ── */
+#splash{align-items:center;justify-content:center;gap:20px}
+.splash-logo{width:76px;height:76px;border-radius:22px;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 56px var(--accentMd)}
+
+/* ── MISC ── */
+.divider{display:flex;align-items:center;gap:12px;margin:14px 0}
+.divider-line{flex:1;height:1px;background:var(--border)}
+.save-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--ter);transition:color .2s;padding:0;line-height:1}
+.save-btn.saved{color:var(--accent)}
+</style>
+</head>
+<body class="dark">
+
+<!-- ═══ APP CONTAINER ═══ -->
+<div id="app">
+
+  <!-- TOASTS -->
+  <div id="toasts"></div>
+
+  <!-- THEME TOGGLE (global) -->
+  <div id="theme-btn" onclick="toggleTheme()">🌙</div>
+
+  <!-- ════════════ SPLASH ════════════ -->
+  <div class="screen active" id="screen-splash" style="align-items:center;justify-content:center;gap:20px">
+    <div class="anim-fadeup" style="text-align:center">
+      <div class="splash-logo anim-pulse" style="margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;font-family:serif">✦</div>
+      <div class="display" style="font-size:34px;color:var(--text)">SkillMatch AI</div>
+      <div style="color:var(--sec);font-size:14px;margin-top:8px">Get hired by your skills</div>
+    </div>
+  </div>
+
+  <!-- ════════════ AUTH ════════════ -->
+  <div class="screen" id="screen-auth" style="align-items:center;justify-content:center;padding:24px">
+    <div style="width:100%;max-width:380px">
+      <!-- Logo -->
+      <div style="text-align:center;margin-bottom:40px">
+        <div style="width:60px;height:60px;border-radius:18px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 12px 40px var(--accentMd);font-size:26px;color:#fff;font-family:serif">✦</div>
+        <div class="display" style="font-size:28px;color:var(--text)">SkillMatch AI</div>
+        <div style="color:var(--sec);font-size:14px;margin-top:6px">Get hired by your skills</div>
+      </div>
+      <!-- Mode toggle -->
+      <div style="display:flex;background:var(--raised);border-radius:12px;padding:3px;margin-bottom:24px;border:1px solid var(--border)">
+        <button id="auth-tab-login" onclick="setAuthMode('login')" class="btn-muted" style="flex:1;border-radius:10px;padding:10px;font-size:14px;transition:all .2s">Sign In</button>
+        <button id="auth-tab-signup" onclick="setAuthMode('signup')" class="btn-muted" style="flex:1;border-radius:10px;padding:10px;font-size:14px;background:transparent;border:none;color:var(--sec);cursor:pointer;transition:all .2s">Sign Up</button>
+      </div>
+      <!-- Fields -->
+      <div id="auth-name-wrap" style="display:none" class="field">
+        <label>Full Name</label>
+        <input type="text" id="auth-name" placeholder="Your name"/>
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="auth-email" placeholder="you@company.com"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="auth-pass" placeholder="Min. 6 characters"/>
+      </div>
+      <div id="auth-confirm-wrap" style="display:none" class="field">
+        <label>Confirm Password</label>
+        <input type="password" id="auth-confirm" placeholder="Repeat password"/>
+      </div>
+      <div id="auth-forgot" style="text-align:right;margin-bottom:20px"><span style="font-size:13px;color:var(--accent);cursor:pointer">Forgot password?</span></div>
+      <button id="auth-submit-btn" class="btn-primary btn-full" onclick="submitAuth()" style="margin-bottom:16px;font-size:17px">Sign In</button>
+      <div class="divider"><div class="divider-line"></div><span style="color:var(--ter);font-size:12px">or</span><div class="divider-line"></div></div>
+      <button class="btn-muted btn-full" onclick="googleSignIn()">Continue with Google</button>
+    </div>
+  </div>
+
+  <!-- ════════════ ONBOARDING ════════════ -->
+  <div class="screen" id="screen-onboard">
+    <div style="padding:52px 24px 0;display:flex;justify-content:space-between;align-items:center">
+      <div class="display" style="font-size:17px;color:var(--text)">SkillMatch AI</div>
+    </div>
+    <!-- Progress dots -->
+    <div style="display:flex;gap:6px;padding:20px 24px 0" id="ob-dots"></div>
+    <!-- Content -->
+    <div style="flex:1;overflow-y:auto;padding:28px 24px 120px" id="ob-content"></div>
+    <!-- Footer -->
+    <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:16px 24px 32px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:10px" id="ob-footer">
+      <button id="ob-back-btn" onclick="obBack()" class="btn-muted" style="display:none">←</button>
+      <button id="ob-next-btn" onclick="obNext()" class="btn-primary" style="flex:1;font-size:17px">Continue →</button>
+    </div>
+  </div>
+
+  <!-- ════════════ MAIN APP ════════════ -->
+  <div class="screen" id="screen-main">
+    <!-- Tab panels -->
+    <div class="scroll-body" id="tab-home" style="display:none"></div>
+    <div class="scroll-body" id="tab-jobs" style="display:none"></div>
+    <div class="scroll-body" id="tab-learn" style="display:none"></div>
+    <div class="scroll-body" id="tab-profile" style="display:none"></div>
+
+    <!-- Bottom Nav -->
+    <nav id="bottom-nav">
+      <button class="nav-btn active" data-tab="home" onclick="switchTab('home')"><span class="icon">⌂</span><span class="lbl">Home</span></button>
+      <button class="nav-btn" data-tab="jobs" onclick="switchTab('jobs')"><span class="icon">⊞</span><span class="lbl">Jobs</span></button>
+      <button class="nav-btn" data-tab="learn" onclick="switchTab('learn')"><span class="icon">⬡</span><span class="lbl">Learn</span></button>
+      <button class="nav-btn" data-tab="profile" onclick="switchTab('profile')"><span class="icon">◎</span><span class="lbl">Profile</span></button>
+    </nav>
+  </div>
+
+  <!-- ════════════ JOB DETAIL ════════════ -->
+  <div class="screen" id="screen-detail">
+    <div style="position:sticky;top:0;z-index:50;background:var(--bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px">
+      <button onclick="closeDetail()" class="btn-muted" style="padding:8px 14px;font-size:13px;border-radius:99px">← Back</button>
+      <span style="flex:1;font-weight:600;font-size:15px">Job Detail</span>
+      <button id="detail-save-btn" onclick="toggleSaveDetail()" class="save-btn" style="font-size:20px">♡</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:20px 20px 120px" id="detail-content"></div>
+    <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:14px 20px 28px;background:var(--bg);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;gap:12px">
+      <button id="detail-save-btn2" onclick="toggleSaveDetail()" class="btn-muted" style="width:50px;padding:0;height:50px;border-radius:14px;font-size:20px;flex-shrink:0">♡</button>
+      <button onclick="applyNow()" class="btn-primary" style="flex:1;font-size:17px">Apply Now</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+const ROLES=[
+  {id:"designer",label:"UI/UX Designer",sub:"Craft digital experiences",emoji:"✦",color:"#9B72CF"},
+  {id:"developer",label:"Developer",sub:"Build the web & beyond",emoji:"⌥",color:"#4A90E8"},
+  {id:"hr",label:"HR Professional",sub:"Shape teams & culture",emoji:"◎",color:"#5CB87A"},
+  {id:"manager",label:"Manager",sub:"Lead & drive outcomes",emoji:"◈",color:"#D4A843"},
+  {id:"marketer",label:"Marketer",sub:"Grow and tell the story",emoji:"◉",color:"#E8824A"},
+  {id:"finance",label:"Finance",sub:"Analyse, model & decide",emoji:"◇",color:"#4A90E8"},
+  {id:"ops",label:"Operations",sub:"Optimise systems at scale",emoji:"◆",color:"#5CB87A"},
+];
+
+const SKILLS_BY_ROLE={
+  designer:["Figma","UX Design","Wireframing","Prototyping","User Research","Design Systems","HTML/CSS","Motion Design","Accessibility","Adobe XD"],
+  developer:["JavaScript","TypeScript","React","Node.js","Python","SQL","Git","REST APIs","Docker","AWS"],
+  hr:["Recruitment","Talent Acquisition","HRIS","Onboarding","Compliance","Performance Management","L&D","Employee Relations"],
+  manager:["Project Management","Leadership","Agile","Stakeholder Management","Budgeting","Team Building","Risk Management","OKRs"],
+  marketer:["Digital Marketing","Social Media","SEO","Content Strategy","Email Marketing","Analytics","PPC","Brand Strategy"],
+  finance:["Financial Modeling","Excel","Accounting","Risk Analysis","Budgeting","Financial Reporting","Forecasting","Valuation"],
+  ops:["Supply Chain","Process Optimization","Logistics","ERP Systems","Quality Control","Six Sigma","Data Analysis","Lean"],
+};
+
+const SKILL_LEVELS=["Beginner","Intermediate","Expert"];
+const LVL_BONUS={Beginner:0,Intermediate:0.15,Expert:0.3};
+
+const COURSES={
+  "Figma":{title:"Figma UI Design Masterclass",dur:"3h 45m",url:"https://youtube.com/watch?v=FTFaQWZBqQ8",thumb:"https://img.youtube.com/vi/FTFaQWZBqQ8/mqdefault.jpg",level:"Beginner"},
+  "UX Design":{title:"UX Design: Full Course",dur:"4h 20m",url:"https://youtube.com/watch?v=Ovj4hFxko7c",thumb:"https://img.youtube.com/vi/Ovj4hFxko7c/mqdefault.jpg",level:"Beginner"},
+  "Wireframing":{title:"Wireframing Fundamentals",dur:"1h 30m",url:"https://youtube.com/watch?v=Ovj4hFxko7c",thumb:"https://img.youtube.com/vi/Ovj4hFxko7c/mqdefault.jpg",level:"Beginner"},
+  "Prototyping":{title:"Advanced Prototyping in Figma",dur:"2h 10m",url:"https://youtube.com/watch?v=FTFaQWZBqQ8",thumb:"https://img.youtube.com/vi/FTFaQWZBqQ8/mqdefault.jpg",level:"Intermediate"},
+  "User Research":{title:"UX Research Methods",dur:"2h 00m",url:"https://youtube.com/watch?v=Ovj4hFxko7c",thumb:"https://img.youtube.com/vi/Ovj4hFxko7c/mqdefault.jpg",level:"Beginner"},
+  "Design Systems":{title:"Design Systems at Scale",dur:"3h 00m",url:"https://youtube.com/watch?v=FTFaQWZBqQ8",thumb:"https://img.youtube.com/vi/FTFaQWZBqQ8/mqdefault.jpg",level:"Intermediate"},
+  "Recruitment":{title:"Recruitment & Selection",dur:"2h 10m",url:"https://youtube.com/watch?v=2YVq0Gz8G9g",thumb:"https://img.youtube.com/vi/2YVq0Gz8G9g/mqdefault.jpg",level:"Intermediate"},
+  "Talent Acquisition":{title:"Talent Acquisition Masterclass",dur:"1h 55m",url:"https://youtube.com/watch?v=V6n0pQ7V0kA",thumb:"https://img.youtube.com/vi/V6n0pQ7V0kA/mqdefault.jpg",level:"Intermediate"},
+  "Project Management":{title:"Project Management Professional",dur:"5h 00m",url:"https://youtube.com/watch?v=ZKOL-rZ79gs",thumb:"https://img.youtube.com/vi/ZKOL-rZ79gs/mqdefault.jpg",level:"Beginner"},
+  "Leadership":{title:"Leadership & Influence",dur:"2h 30m",url:"https://youtube.com/watch?v=HAnw168huqA",thumb:"https://img.youtube.com/vi/HAnw168huqA/mqdefault.jpg",level:"Intermediate"},
+  "Agile":{title:"Agile & Scrum Masterclass",dur:"4h 00m",url:"https://youtube.com/watch?v=ZKOL-rZ79gs",thumb:"https://img.youtube.com/vi/ZKOL-rZ79gs/mqdefault.jpg",level:"Intermediate"},
+  "Digital Marketing":{title:"Digital Marketing Full Course",dur:"6h 15m",url:"https://youtube.com/watch?v=nU-IIXBWlS4",thumb:"https://img.youtube.com/vi/nU-IIXBWlS4/mqdefault.jpg",level:"Beginner"},
+  "SEO":{title:"SEO Fundamentals 2024",dur:"3h 30m",url:"https://youtube.com/watch?v=nU-IIXBWlS4",thumb:"https://img.youtube.com/vi/nU-IIXBWlS4/mqdefault.jpg",level:"Beginner"},
+  "Social Media":{title:"Social Media Marketing Strategy",dur:"3h 00m",url:"https://youtube.com/watch?v=nU-IIXBWlS4",thumb:"https://img.youtube.com/vi/nU-IIXBWlS4/mqdefault.jpg",level:"Beginner"},
+  "Excel":{title:"Excel from Zero to Hero",dur:"4h 50m",url:"https://youtube.com/watch?v=Vl0H-qTclOg",thumb:"https://img.youtube.com/vi/Vl0H-qTclOg/mqdefault.jpg",level:"Beginner"},
+  "Financial Modeling":{title:"Financial Modeling Bootcamp",dur:"2h 45m",url:"https://youtube.com/watch?v=2Xc9gXyf2G4",thumb:"https://img.youtube.com/vi/2Xc9gXyf2G4/mqdefault.jpg",level:"Beginner"},
+  "Supply Chain":{title:"Supply Chain Fundamentals",dur:"3h 20m",url:"https://youtube.com/watch?v=5mxZ5c7zj2A",thumb:"https://img.youtube.com/vi/5mxZ5c7zj2A/mqdefault.jpg",level:"Intermediate"},
+  "JavaScript":{title:"JavaScript: The Complete Guide",dur:"8h 20m",url:"https://youtube.com/watch?v=PkZNo7MFNFg",thumb:"https://img.youtube.com/vi/PkZNo7MFNFg/mqdefault.jpg",level:"Beginner"},
+  "Python":{title:"Python for Everybody",dur:"13h 45m",url:"https://youtube.com/watch?v=_uQrJ0TkZlc",thumb:"https://img.youtube.com/vi/_uQrJ0TkZlc/mqdefault.jpg",level:"Beginner"},
+  "React":{title:"React: Complete Developer Course",dur:"7h 00m",url:"https://youtube.com/watch?v=PkZNo7MFNFg",thumb:"https://img.youtube.com/vi/PkZNo7MFNFg/mqdefault.jpg",level:"Intermediate"},
+  "TypeScript":{title:"TypeScript Complete Course",dur:"4h 30m",url:"https://youtube.com/watch?v=PkZNo7MFNFg",thumb:"https://img.youtube.com/vi/PkZNo7MFNFg/mqdefault.jpg",level:"Intermediate"},
+};
+
+const JOBS=[
+  {id:"j1",title:"Senior UX Designer",company:"Notion",loc:"Remote",type:"Remote",pay:"₹25 LPA",salary:2500000,posted:1,role:"designer",logo:"N",lc:"#E5E5E5",desc:"Craft experiences for millions of knowledge workers. Lead design for AI-native features end-to-end.",required:["Figma","UX Design","User Research","Prototyping","Design Systems"],optional:["Motion Design","Accessibility"]},
+  {id:"j2",title:"Product Designer",company:"Linear",loc:"Bengaluru",type:"Hybrid",pay:"₹32 LPA",salary:3200000,posted:2,role:"designer",logo:"L",lc:"#5E6AD2",desc:"Own design for core workflows. Build components that developers actually love using.",required:["Figma","Prototyping","Design Systems","HTML/CSS"],optional:["UX Design","Motion Design"]},
+  {id:"j3",title:"UX Lead",company:"Razorpay",loc:"Mumbai",type:"Hybrid",pay:"₹40 LPA",salary:4000000,posted:3,role:"designer",logo:"R",lc:"#2A7FFF",desc:"Lead fintech design for 8M+ businesses. Shape strategy across all payment touchpoints.",required:["Figma","UX Design","Wireframing","Design Systems","User Research"],optional:["Accessibility"]},
+  {id:"j4",title:"UX Researcher",company:"Anthropic",loc:"Remote",type:"Remote",pay:"₹55 LPA",salary:5500000,posted:1,role:"designer",logo:"A",lc:"#E8824A",desc:"Foundational research shaping safe, human-centered AI for the world.",required:["User Research","UX Design","Wireframing"],optional:["Figma","Prototyping"]},
+  {id:"j5",title:"Engineering Manager",company:"Vercel",loc:"Remote",type:"Remote",pay:"₹60 LPA",salary:6000000,posted:1,role:"manager",logo:"V",lc:"#FFFFFF",desc:"Lead a world-class team powering millions of deployments. Set technical direction and culture.",required:["Leadership","Project Management","Agile","Stakeholder Management","Team Building"],optional:["OKRs","Risk Management"]},
+  {id:"j6",title:"Product Manager",company:"Razorpay",loc:"Bengaluru",type:"Hybrid",pay:"₹45 LPA",salary:4500000,posted:3,role:"manager",logo:"R",lc:"#2A7FFF",desc:"Own product roadmap for Razorpay's merchant platform. Bridge engineering and design.",required:["Project Management","Agile","Stakeholder Management","OKRs"],optional:["Leadership","Budgeting"]},
+  {id:"j7",title:"HR Manager",company:"Stripe",loc:"Pune",type:"Hybrid",pay:"₹22 LPA",salary:2200000,posted:3,role:"hr",logo:"S",lc:"#6772E5",desc:"Build scalable hiring pipelines and exceptional candidate experiences for Stripe EMEA.",required:["Recruitment","Talent Acquisition","HRIS","Onboarding","Compliance"],optional:["L&D","Performance Management"]},
+  {id:"j8",title:"Talent Lead",company:"Figma",loc:"Remote",type:"Remote",pay:"₹25 LPA",salary:2500000,posted:5,role:"hr",logo:"F",lc:"#A259FF",desc:"Attract world-class talent. Own full-cycle recruiting for product and design globally.",required:["Talent Acquisition","Recruitment","Performance Management"],optional:["Employee Relations","L&D"]},
+  {id:"j9",title:"Full-Stack Engineer",company:"Supabase",loc:"Remote",type:"Remote",pay:"₹45 LPA",salary:4500000,posted:2,role:"developer",logo:"S",lc:"#3ECF8E",desc:"Build open-source backend infrastructure used by 500k+ developers worldwide.",required:["JavaScript","React","Node.js","SQL","REST APIs"],optional:["TypeScript","Docker"]},
+  {id:"j10",title:"Frontend Engineer II",company:"Zepto",loc:"Mumbai",type:"On-site",pay:"₹38 LPA",salary:3800000,posted:1,role:"developer",logo:"Z",lc:"#9B30FF",desc:"Build blazing-fast grocery delivery experiences — real-time tracking and checkout.",required:["JavaScript","React","TypeScript","Git"],optional:["REST APIs","AWS"]},
+  {id:"j11",title:"Growth Marketing Lead",company:"Webflow",loc:"Remote",type:"Remote",pay:"₹30 LPA",salary:3000000,posted:4,role:"marketer",logo:"W",lc:"#4353FF",desc:"Own demand generation. Run paid, organic, and lifecycle campaigns with rigorous analysis.",required:["Digital Marketing","SEO","Analytics","Content Strategy"],optional:["PPC","Email Marketing"]},
+  {id:"j12",title:"Financial Analyst",company:"Ramp",loc:"Gurgaon",type:"Hybrid",pay:"₹24 LPA",salary:2400000,posted:6,role:"finance",logo:"R",lc:"#16A34A",desc:"Build financial models supporting strategic decisions at one of fintech's fastest-growing companies.",required:["Financial Modeling","Excel","Budgeting","Financial Reporting"],optional:["Forecasting","Risk Analysis"]},
+  {id:"j13",title:"Operations Manager",company:"Shopify",loc:"Delhi",type:"Hybrid",pay:"₹26 LPA",salary:2600000,posted:3,role:"ops",logo:"S",lc:"#95BF47",desc:"Optimise fulfillment operations for Shopify Logistics. Drive efficiency across supply chain.",required:["Supply Chain","Process Optimization","Logistics","ERP Systems"],optional:["Six Sigma","Quality Control"]},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let isDark=true, currentUser=null, currentProfile=null;
+let obStep=0, obRole="designer", obSkills=[], obLevels={};
+let savedJobs=[], courseProgress={}, activeJobId=null;
+let jobFilter="all", jobSort="match", jobSearch="", learnFilter="gap";
+let authMode="login";
+
+const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
+
+// ═══════════════════════════════════════════════════════════════
+// MATCHING ENGINE
+// ═══════════════════════════════════════════════════════════════
+function calcMatch(userSkills,levels,job){
+  const req=job.required||[],opt=job.optional||[];
+  if(!req.length) return{score:0,matched:[],missing:[],bonus:[]};
+  let score=0,max=0;const matched=[],missing=[],bonus=[];
+  req.forEach(s=>{max+=2;if(userSkills.includes(s)){score+=2*(1+LVL_BONUS[levels[s]||"Beginner"]);matched.push(s);}else missing.push(s);});
+  opt.forEach(s=>{max+=0.8;if(userSkills.includes(s)){score+=0.8*(1+LVL_BONUS[levels[s]||"Beginner"]);bonus.push(s);}});
+  const raw=max>0?(score/max)*100:0;
+  const final=Math.max(0,Math.min(100,Math.round(raw-missing.length*2.5)));
+  return{score:final,matched,missing,bonus};
+}
+
+function getTier(score){
+  if(score>=80) return{label:"Best Match",cls:"green",color:"var(--green)"};
+  if(score>=55) return{label:"Good Fit",cls:"blue",color:"var(--blue)"};
+  if(score>=30) return{label:"Skill Up",cls:"gold",color:"var(--gold)"};
+  return{label:"Exploring",cls:"purple",color:"var(--purple)"};
+}
+
+function pill(text,cls=""){return`<span class="pill${cls?" pill-"+cls:""}">${text}</span>`;}
+
+function ring(score,size=64){
+  const t=getTier(score),r=(size-8)/2,circ=2*Math.PI*r,offset=circ*(1-score/100);
+  return`<div style="position:relative;width:${size}px;height:${size}px;flex-shrink:0">
+    <svg width="${size}" height="${size}" style="transform:rotate(-90deg)">
+      <circle class="ring-bg" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="5"/>
+      <circle class="ring-fg" cx="${size/2}" cy="${size/2}" r="${r}" stroke="${t.color}" stroke-width="5"
+        stroke-dasharray="${circ}" stroke-dashoffset="${circ}" style="transition:stroke-dashoffset 1s ease"
+        data-target="${offset}"/>
+    </svg>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+      <span style="font-size:${size*0.2}px;font-weight:700;color:${t.color};font-variant-numeric:tabular-nums">${score}%</span>
+    </div>
+  </div>`;
+}
+
+function logoBox(ch,lc,size=48){
+  const light=lc==="#FFFFFF"||lc==="#E5E5E5";
+  const bg=light?"var(--raised)":`${lc}18`, border=light?"var(--border)":`${lc}30`, color=light?"var(--text)":lc;
+  return`<div class="logo-box" style="width:${size}px;height:${size}px;background:${bg};border-color:${border};color:${color};font-size:${size*0.42}px;border-radius:${size*0.28}px">${ch}</div>`;
+}
+
+function barHTML(val,color,h=3){
+  return`<div class="bar-wrap" style="height:${h}px"><div class="bar-fill" data-target="${val}" style="width:0;height:${h}px;background:${color}"></div></div>`;
+}
+
+// Animate bars and rings after render
+function animateFills(){
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.bar-fill[data-target]').forEach(el=>{
+      setTimeout(()=>{el.style.width=el.dataset.target+'%';},80);
+    });
+    document.querySelectorAll('.ring-fg[data-target]').forEach(el=>{
+      setTimeout(()=>{el.style.strokeDashoffset=el.dataset.target;},100);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════
+function toast(msg,type="info"){
+  const el=document.createElement('div');
+  el.className=`toast toast-${type}`;el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCREEN ROUTING
+// ═══════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`screen-${id}`).classList.add('active');
+  const showNav=id==='main';
+  const nb=document.getElementById('bottom-nav');
+  if(nb) nb.style.display=showNav?'flex':'none';
+  const tb=document.getElementById('theme-btn');
+  if(tb) tb.style.display=id==='splash'?'none':'flex';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════════
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.className=isDark?'dark':'light';
+  document.getElementById('theme-btn').textContent=isDark?'🌙':'☀';
+  LS.set('sm_dark',isDark);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════
+function setAuthMode(mode){
+  authMode=mode;
+  document.getElementById('auth-name-wrap').style.display=mode==='signup'?'block':'none';
+  document.getElementById('auth-confirm-wrap').style.display=mode==='signup'?'block':'none';
+  document.getElementById('auth-forgot').style.display=mode==='login'?'block':'none';
+  document.getElementById('auth-submit-btn').textContent=mode==='login'?'Sign In':'Create Account';
+  document.getElementById('auth-tab-login').style.background=mode==='login'?'var(--raised)':'transparent';
+  document.getElementById('auth-tab-login').style.color=mode==='login'?'var(--text)':'var(--sec)';
+  document.getElementById('auth-tab-signup').style.background=mode==='signup'?'var(--raised)':'transparent';
+  document.getElementById('auth-tab-signup').style.color=mode==='signup'?'var(--text)':'var(--sec)';
+}
+
+function submitAuth(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-pass').value;
+  const name=document.getElementById('auth-name').value.trim();
+  if(!email.includes('@')){toast('Valid email required','error');return;}
+  if(pass.length<6){toast('Password must be 6+ characters','error');return;}
+  if(authMode==='signup'&&!name){toast('Name required','error');return;}
+  const uid='u_'+Date.now();
+  currentUser={uid,name:name||email.split('@')[0],email};
+  LS.set('sm_sess',currentUser);
+  toast('Welcome to SkillMatch AI ✦','success');
+  afterAuth();
+}
+
+function googleSignIn(){
+  currentUser={uid:'g_1',name:'Alex Rivera',email:'alex@gmail.com'};
+  LS.set('sm_sess',currentUser);
+  toast('Signed in with Google','success');
+  afterAuth();
+}
+
+function afterAuth(){
+  const prof=LS.get(`sm_profile_${currentUser.uid}`);
+  savedJobs=LS.get(`sm_saved_${currentUser.uid}`)||[];
+  courseProgress=LS.get(`sm_prog_${currentUser.uid}`)||{};
+  if(prof){currentProfile=prof;showMain();}
+  else{obStep=0;obRole='designer';obSkills=[];obLevels={};renderOnboard();showScreen('onboard');}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════════════════════════
+function renderOnboard(){
+  // Dots
+  const dots=document.getElementById('ob-dots');
+  dots.innerHTML=[0,1,2].map(i=>`<div style="height:3px;border-radius:99px;flex:${i===obStep?2:1};background:${i<=obStep?'var(--accent)':'var(--border)'};transition:all .35s ease"></div>`).join('');
+
+  // Back btn
+  const backBtn=document.getElementById('ob-back-btn');
+  backBtn.style.display=obStep>0?'flex':'none';
+
+  // Next btn
+  const nextBtn=document.getElementById('ob-next-btn');
+  nextBtn.textContent=obStep<2?'Continue →':'Find My Matches ✦';
+
+  const METAS=[
+    {label:"Your role",sub:"We personalise every match based on your career path."},
+    {label:"Your skills",sub:"Select everything you already know. Honest is best."},
+    {label:"Skill levels",sub:"Rate your proficiency to improve match accuracy."},
+  ];
+  const m=METAS[obStep];
+  let html=`<div style="margin-bottom:28px">
+    <div class="label-caps" style="margin-bottom:10px">Step ${obStep+1} of 3</div>
+    <div class="display" style="font-size:28px;color:var(--text);margin-bottom:8px">${m.label}</div>
+    <div style="color:var(--sec);font-size:14px;line-height:1.6">${m.sub}</div>
+  </div>`;
+
+  if(obStep===0){
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">`;
+    ROLES.forEach(r=>{
+      const sel=obRole===r.id;
+      html+=`<div class="role-card${sel?' selected':''}" onclick="selectRole('${r.id}')">
+        <div style="font-size:22px;margin-bottom:8px;color:${r.color}">${r.emoji}</div>
+        <div style="font-size:13px;font-weight:700;color:${sel?'var(--accent)':'var(--text)'};margin-bottom:3px">${r.label}</div>
+        <div style="font-size:11px;color:var(--sec)">${r.sub}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  if(obStep===1){
+    const roleSkills=SKILLS_BY_ROLE[obRole]||[];
+    html+=`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">`;
+    roleSkills.forEach(s=>{
+      const sel=obSkills.includes(s);
+      html+=`<div class="chip${sel?' selected':''}" onclick="toggleSkill(this,'${s}')">${s}</div>`;
+    });
+    html+=`</div>`;
+    if(obSkills.length>0){
+      html+=`<div style="background:var(--accentLo);border-radius:14px;padding:12px 16px;border:1px solid var(--accentMd);font-size:13px;color:var(--accent);font-weight:500">${obSkills.length} skill${obSkills.length>1?'s':''} selected ✦</div>`;
+    }
+  }
+
+  if(obStep===2){
+    if(obSkills.length===0){
+      html+=`<div style="text-align:center;padding:40px 0;color:var(--ter);font-size:14px">← Go back and select some skills first</div>`;
+    } else {
+      html+=`<div style="display:flex;flex-direction:column;gap:12px">`;
+      obSkills.forEach(s=>{
+        const cur=obLevels[s]||'Beginner';
+        html+=`<div class="card-sm" style="padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:14px;font-weight:600;color:var(--text)">${s}</span>
+            <span style="font-size:12px;color:var(--accent);font-weight:600">${cur}</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${SKILL_LEVELS.map(lv=>`<button class="level-btn${cur===lv?' active':''}" onclick="setLevel('${s}','${lv}')">${lv}</button>`).join('')}
+          </div>
+        </div>`;
+      });
+      html+=`</div>`;
+    }
+  }
+
+  document.getElementById('ob-content').innerHTML=html;
+}
+
+function selectRole(id){obRole=id;renderOnboard();}
+
+function toggleSkill(el,s){
+  if(obSkills.includes(s)){
+    obSkills=obSkills.filter(x=>x!==s);
+  } else {
+    obSkills.push(s);
+    if(!obLevels[s]) obLevels[s]='Beginner';
+  }
+  el.classList.toggle('selected',obSkills.includes(s));
+  // Update counter
+  const wrap=el.closest('#ob-content');
+  const counter=wrap.querySelector('[data-counter]');
+  if(counter) counter.textContent=`${obSkills.length} skill${obSkills.length>1?'s':''} selected ✦`;
+  renderOnboard();
+}
+
+function setLevel(skill,lv){
+  obLevels[skill]=lv;
+  renderOnboard();
+}
+
+function obBack(){if(obStep>0){obStep--;renderOnboard();}}
+
+function obNext(){
+  if(obStep<2){obStep++;renderOnboard();}
+  else{
+    if(obSkills.length===0){toast('Please select at least one skill','error');return;}
+    currentProfile={role:obRole,skills:obSkills,skillLevels:obLevels,name:currentUser.name,email:currentUser.email};
+    LS.set(`sm_profile_${currentUser.uid}`,currentProfile);
+    toast('Profile saved — let\'s find your matches ✦','success');
+    showMain();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN APP
+// ═══════════════════════════════════════════════════════════════
+function showMain(){
+  showScreen('main');
+  switchTab('home');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);});
+  ['home','jobs','learn','profile'].forEach(t=>{
+    document.getElementById(`tab-${t}`).style.display=t===tab?'block':'none';
+  });
+  if(tab==='home') renderHome();
+  else if(tab==='jobs') renderJobs();
+  else if(tab==='learn') renderLearn();
+  else if(tab==='profile') renderProfile();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HOME TAB
+// ═══════════════════════════════════════════════════════════════
+function renderHome(){
+  const p=currentProfile, s=p?.skills||[], lv=p?.skillLevels||{}, rid=p?.role||'designer';
+  const roleObj=ROLES.find(r=>r.id===rid);
+  const scored=JOBS.map(j=>({...j,...calcMatch(s,lv,j)}));
+  const top3=[...scored].sort((a,b)=>b.score-a.score).slice(0,3);
+  const hero=top3[0];
+  const qual=scored.filter(j=>j.score>=55).length;
+  const best=scored.filter(j=>j.score>=80).length;
+  const avg=s.length?Math.round(scored.reduce((acc,j)=>acc+j.score,0)/scored.length):0;
+  const closest=[...scored].filter(j=>j.role===rid&&j.score<100).sort((a,b)=>b.score-a.score)[0];
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const name=currentUser?.name?.split(' ')[0]||'Friend';
+
+  let html=`<div style="padding:24px 20px">`;
+
+  // Greeting
+  html+=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px">
+    <div>
+      <div style="font-size:13px;color:var(--sec);margin-bottom:4px">${greet}</div>
+      <div class="display" style="font-size:26px;color:var(--text)">${name}</div>
+      ${roleObj?`<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:var(--raised);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:500;color:var(--sec)"><span style="color:${roleObj.color}">${roleObj.emoji}</span>${roleObj.label}</div>`:''}
+    </div>
+    <div onclick="switchTab('profile')" style="width:42px;height:42px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 4px 16px var(--accentMd)">${(name)[0]}</div>
+  </div>`;
+
+  // Stats
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px">
+    ${[['Matches',qual,'var(--green)'],['Best Fit',best,'var(--accent)'],['Avg Score',avg+'%','var(--blue)']].map(([l,v,c])=>`
+    <div class="card-sm" style="padding:16px 12px">
+      <div style="font-size:24px;font-weight:800;color:${c};letter-spacing:-0.03em;line-height:1;margin-bottom:4px">${v}</div>
+      <div style="font-size:11px;color:var(--sec);font-weight:500">${l}</div>
+    </div>`).join('')}
+  </div>`;
+
+  // Hero top match
+  if(hero){
+    const t=getTier(hero.score);
+    html+=`<div class="card" style="padding:22px;margin-bottom:24px;cursor:pointer;position:relative;overflow:hidden" onclick="openDetail('${hero.id}')">
+      <div style="position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:var(--accentLo);filter:blur(40px)"></div>
+      <div style="position:relative">
+        <div class="label-caps" style="margin-bottom:14px">Top Match for You</div>
+        <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px">
+          ${logoBox(hero.logo,hero.lc,52)}
+          <div style="flex:1;min-width:0">
+            <div class="display" style="font-size:18px;color:var(--text);margin-bottom:3px">${hero.title}</div>
+            <div style="color:var(--sec);font-size:13px">${hero.company}</div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${pill(hero.type)}${pill(hero.pay,'accent')}</div>
+          </div>
+          ${ring(hero.score,60)}
+        </div>
+        ${barHTML(hero.score,t.color,3)}
+      </div>
+    </div>`;
+  }
+
+  // AI Insight
+  if(closest){
+    const hasMissing=closest.missing.length>0;
+    html+=`<div class="card-sm" style="padding:20px;margin-bottom:24px;background:linear-gradient(135deg,#0D1A2A,#0D2010);border:1px solid #1A3A2A">
+      <div class="label-caps" style="color:var(--green);margin-bottom:10px">AI Insight</div>
+      <div class="display" style="font-size:17px;color:var(--text);margin-bottom:${hasMissing?8:0}px">${hasMissing?`${closest.missing.length} skill${closest.missing.length>1?'s':''} away from ${closest.title}`:`Fully qualified — apply to ${closest.title} today`}</div>
+      ${hasMissing?`<div style="color:#7EC8A0;font-size:13px;line-height:1.6;margin-bottom:16px">Focus on <strong style="color:var(--text)">${closest.missing.slice(0,2).join(' & ')}</strong> at ${closest.company}.</div>`:''}
+      <button onclick="switchTab('learn')" class="btn-ghost" style="padding:9px 18px;font-size:13px">Explore courses</button>
+    </div>`;
+  }
+
+  // More matches
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="font-size:17px;font-weight:700;letter-spacing:-0.02em">More Matches</div>
+    <span onclick="switchTab('jobs')" style="font-size:13px;color:var(--accent);font-weight:500;cursor:pointer">See all</span>
+  </div>
+  <div>`;
+  top3.slice(1).forEach(job=>{
+    const t=getTier(job.score);
+    html+=`<div class="card-sm" style="padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;margin-bottom:10px" onclick="openDetail('${job.id}')">
+      ${logoBox(job.logo,job.lc,42)}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:14px;letter-spacing:-0.01em;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${job.title}</div>
+        <div style="color:var(--sec);font-size:12px">${job.company} · ${job.loc}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:18px;font-weight:800;color:${t.color};letter-spacing:-0.02em">${job.score}%</div>
+        ${pill(t.label,'pill-'+t.cls)}
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // Skill profile
+  if(s.length>0){
+    const palette=['var(--accent)','var(--blue)','var(--green)','var(--gold)','var(--purple)'];
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 16px">
+      <div style="font-size:17px;font-weight:700;letter-spacing:-0.02em">Skill Profile</div>
+      <span onclick="switchTab('profile')" style="font-size:13px;color:var(--accent);font-weight:500;cursor:pointer">Edit</span>
+    </div>
+    <div class="card" style="padding:20px">`;
+    s.slice(0,5).forEach((sk,i)=>{
+      const pct={Beginner:33,Intermediate:66,Expert:100}[lv[sk]||'Beginner'];
+      html+=`<div style="margin-bottom:${i<Math.min(s.length,5)-1?14:0}px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:500">${sk}</span>
+          <span style="font-size:11px;color:var(--sec)">${lv[sk]||'Beginner'}</span>
+        </div>
+        ${barHTML(pct,palette[i%5],3)}
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  html+=`</div>`;
+  document.getElementById('tab-home').innerHTML=html;
+  animateFills();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// JOBS TAB
+// ═══════════════════════════════════════════════════════════════
+function renderJobs(){
+  const p=currentProfile, s=p?.skills||[], lv=p?.skillLevels||{};
+  const scored=JOBS.map(j=>({...j,...calcMatch(s,lv,j)}));
+  const q=jobSearch.toLowerCase();
+  let shown=[...scored];
+  if(q) shown=shown.filter(j=>j.title.toLowerCase().includes(q)||j.company.toLowerCase().includes(q)||j.required.some(sk=>sk.toLowerCase().includes(q)));
+  if(jobFilter==='remote') shown=shown.filter(j=>j.type==='Remote');
+  if(jobFilter==='hybrid') shown=shown.filter(j=>j.type==='Hybrid');
+  if(jobFilter==='best')   shown=shown.filter(j=>j.score>=80);
+  if(jobFilter==='saved')  shown=shown.filter(j=>savedJobs.includes(j.id));
+  if(jobSort==='match')    shown.sort((a,b)=>b.score-a.score);
+  if(jobSort==='salary')   shown.sort((a,b)=>b.salary-a.salary);
+  if(jobSort==='newest')   shown.sort((a,b)=>a.posted-b.posted);
+
+  let html=`<div style="padding:20px 20px">
+    <div class="display" style="font-size:24px;color:var(--text);margin-bottom:20px">Jobs</div>
+    <!-- Search -->
+    <div class="card-sm" style="display:flex;align-items:center;gap:10px;padding:11px 16px;margin-bottom:14px">
+      <span style="color:var(--ter);font-size:15px">⌕</span>
+      <input type="text" placeholder="Search roles, companies, skills…" value="${jobSearch}"
+        oninput="jobSearch=this.value;renderJobs()"
+        style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:inherit;font-size:14px"/>
+      ${jobSearch?`<span onclick="jobSearch='';renderJobs()" style="color:var(--ter);cursor:pointer;font-size:13px">✕</span>`:''}
+    </div>
+    <!-- Filters -->
+    <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:10px;padding-bottom:2px">
+      ${[['all','All'],['best','Best Match'],['remote','Remote'],['hybrid','Hybrid'],['saved','Saved']].map(([f,l])=>
+        `<button class="filter-btn${jobFilter===f?' active':''}" onclick="jobFilter='${f}';renderJobs()">${l}</button>`
+      ).join('')}
+    </div>
+    <!-- Sort -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+      <span style="font-size:11px;color:var(--ter);font-weight:500;white-space:nowrap">Sort:</span>
+      ${[['match','Match'],['salary','Salary'],['newest','Newest']].map(([sv,sl])=>
+        `<button class="filter-btn${jobSort===sv?' active':''}" onclick="jobSort='${sv}';renderJobs()" style="padding:5px 12px">${sl}</button>`
+      ).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--ter);margin-bottom:16px;font-weight:500">${shown.length} results</div>`;
+
+  if(shown.length===0){
+    html+=`<div style="text-align:center;padding:48px 0"><div style="font-size:32px;margin-bottom:12px">⌕</div><div style="font-weight:600;font-size:16px;margin-bottom:6px">No results</div><div style="color:var(--sec);font-size:13px">Adjust your search or filters</div></div>`;
+  } else {
+    shown.forEach(job=>{
+      const t=getTier(job.score), isSaved=savedJobs.includes(job.id);
+      html+=`<div class="job-card" onclick="openDetail('${job.id}')">
+        <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">
+          ${logoBox(job.logo,job.lc,48)}
+          <div style="flex:1;min-width:0">
+            <div class="display" style="font-size:16px;color:var(--text);margin-bottom:3px">${job.title}</div>
+            <div style="color:var(--sec);font-size:13px;margin-bottom:6px">${job.company} · ${job.loc}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">${pill(job.type)}${pill(job.pay,'accent')}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+            <div style="font-size:20px;font-weight:800;color:${t.color};letter-spacing:-0.02em">${job.score}%</div>
+            <button class="save-btn${isSaved?' saved':''}" onclick="event.stopPropagation();toggleSave('${job.id}',this)">${isSaved?'♥':'♡'}</button>
+          </div>
+        </div>
+        ${barHTML(job.score,t.color,2)}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0">
+          ${job.matched.slice(0,2).map(sk=>`${pill('✓ '+sk,'green')}`).join('')}
+          ${job.missing.slice(0,2).map(sk=>`${pill('+ '+sk,'gold')}`).join('')}
+          ${job.missing.length>2?pill('+'+( job.missing.length-2)):''}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="display:flex;gap:6px">${pill(t.label,'pill-'+t.cls)}${pill(job.type)}${pill(job.pay)}</div>
+          <span style="font-size:11px;color:var(--ter)">${job.posted}d ago</span>
+        </div>
+      </div>`;
+    });
+  }
+
+  html+=`</div>`;
+  document.getElementById('tab-jobs').innerHTML=html;
+  animateFills();
+}
+
+function toggleSave(jobId, btn){
+  if(savedJobs.includes(jobId)){savedJobs=savedJobs.filter(id=>id!==jobId);toast('Removed from saved','info');}
+  else{savedJobs.push(jobId);toast('Saved ♥','success');}
+  LS.set(`sm_saved_${currentUser?.uid}`,savedJobs);
+  if(btn){btn.classList.toggle('saved',savedJobs.includes(jobId));btn.textContent=savedJobs.includes(jobId)?'♥':'♡';}
+  updateDetailSaveBtns(jobId);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// JOB DETAIL
+// ═══════════════════════════════════════════════════════════════
+function openDetail(jobId){
+  activeJobId=jobId;
+  const job=JOBS.find(j=>j.id===jobId);
+  const p=currentProfile, s=p?.skills||[], lv=p?.skillLevels||{};
+  const{score,matched,missing,bonus}=calcMatch(s,lv,job);
+  const t=getTier(score);
+  const isSaved=savedJobs.includes(jobId);
+  updateDetailSaveBtns(jobId);
+
+  let html=`<div>
+    <!-- Hero -->
+    <div class="card" style="padding:22px;margin-bottom:16px">
+      <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:18px">
+        ${logoBox(job.logo,job.lc,56)}
+        <div style="flex:1;min-width:0">
+          <div class="display" style="font-size:22px;color:var(--text);margin-bottom:4px;line-height:1.2">${job.title}</div>
+          <div style="color:var(--sec);font-size:14px;margin-bottom:10px">${job.company}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${pill(job.type)}${pill(job.loc)}${pill(job.pay,'accent')}${pill(job.posted+'d ago')}</div>
+        </div>
+        ${ring(score,68)}
+      </div>
+      ${pill(t.label,'pill-'+t.cls)}
+      ${missing.length>0?`<div style="margin-top:14px;background:var(--accentLo);border:1px solid var(--accentMd);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--accent);font-weight:500;line-height:1.5">You're <strong>${missing.length} skill${missing.length>1?'s':''} away</strong> from qualifying — see courses below.</div>`:''}
+    </div>
+
+    <!-- About -->
+    <div class="card" style="padding:20px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;color:var(--sec);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px">About</div>
+      <div style="color:var(--sec);font-size:14px;line-height:1.7">${job.desc}</div>
+    </div>
+
+    <!-- Skills -->
+    <div class="card" style="padding:20px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:600;color:var(--sec);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">Skills</div>
+      ${barHTML(score,t.color,4)}
+      <div style="margin-top:18px">`;
+
+  if(matched.length>0){
+    html+=`<div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px">You have · ${matched.length}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${matched.map(sk=>`<span class="pill pill-green" style="padding:7px 13px;font-size:12px">${sk} <span style="opacity:.6;font-size:10px">${lv[sk]||'Beginner'}</span></span>`).join('')}</div>
+    </div>`;
+  }
+  if(bonus.length>0){
+    html+=`<div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:8px">Bonus · ${bonus.length}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${bonus.map(sk=>pill(sk,'blue')).join('')}</div>
+    </div>`;
+  }
+  if(missing.length>0){
+    html+=`<div>
+      <div style="font-size:12px;font-weight:600;color:var(--gold);margin-bottom:8px">To learn · ${missing.length}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${missing.map(sk=>pill(sk,'gold')).join('')}</div>
+    </div>`;
+  }
+  html+=`</div></div>`;
+
+  // Courses
+  const missCourses=missing.filter(sk=>COURSES[sk]);
+  if(missCourses.length>0){
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:17px;font-weight:700;letter-spacing:-0.02em">Bridge the Gap</div>
+      <span onclick="closeDetail();switchTab('learn')" style="font-size:13px;color:var(--accent);cursor:pointer;font-weight:500">All courses</span>
+    </div>`;
+    missCourses.slice(0,2).forEach(sk=>{
+      const cr=COURSES[sk];
+      html+=`<div class="card" style="overflow:hidden;margin-bottom:14px">
+        <div class="course-thumb">
+          <img src="${cr.thumb}" alt="${cr.title}" onerror="this.style.display='none'"/>
+          <div class="course-overlay"></div>
+          <div class="badge-yt">▶ YT</div>
+          <div class="course-meta">
+            <div class="skill-tag">${sk}</div>
+            <div class="course-title">${cr.title}</div>
+          </div>
+        </div>
+        <div style="padding:12px 16px;display:flex;gap:10px;align-items:center">
+          <div style="flex:1;display:flex;gap:8px"><span style="font-size:12px;color:var(--sec)">⏱ ${cr.dur}</span>${pill(cr.level)}</div>
+          <a href="${cr.url}" target="_blank" style="background:#CC0000;color:#fff;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">Watch</a>
+        </div>
+      </div>`;
+    });
+  }
+
+  html+=`</div>`;
+  document.getElementById('detail-content').innerHTML=html;
+  updateDetailSaveBtns(jobId);
+  showScreen('detail');
+  animateFills();
+}
+
+function closeDetail(){
+  const prevTab=document.querySelector('.nav-btn.active')?.dataset?.tab||'home';
+  showScreen('main');
+  switchTab(prevTab);
+}
+
+function updateDetailSaveBtns(jobId){
+  const isSaved=savedJobs.includes(jobId);
+  ['detail-save-btn','detail-save-btn2'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.classList.toggle('saved',isSaved);b.textContent=isSaved?'♥':'♡';}
+  });
+}
+
+function toggleSaveDetail(){
+  if(!activeJobId) return;
+  toggleSave(activeJobId);
+  updateDetailSaveBtns(activeJobId);
+}
+
+function applyNow(){
+  const job=JOBS.find(j=>j.id===activeJobId);
+  toast(`Applied to ${job?.company||'job'} ✦`,'success');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LEARN TAB
+// ═══════════════════════════════════════════════════════════════
+function renderLearn(){
+  const p=currentProfile, s=p?.skills||[], rid=p?.role||'designer';
+  const roleJobs=JOBS.filter(j=>j.role===rid);
+  const gapSkills=[...new Set(roleJobs.flatMap(j=>j.required.filter(sk=>!s.includes(sk))))].filter(sk=>COURSES[sk]);
+  const done=Object.keys(courseProgress).length, total=Object.keys(COURSES).length;
+  const pct=Math.round(done/total*100);
+
+  let shown=[];
+  if(learnFilter==='gap') shown=gapSkills;
+  else if(learnFilter==='done') shown=Object.keys(courseProgress).filter(sk=>COURSES[sk]);
+  else shown=Object.keys(COURSES);
+
+  let html=`<div style="padding:20px 20px">
+    <div class="display" style="font-size:24px;color:var(--text);margin-bottom:4px">Learning Hub</div>
+    <div style="color:var(--sec);font-size:14px;margin-bottom:22px">Curated courses to close your gaps</div>
+
+    <!-- Progress -->
+    <div class="card-sm" style="padding:20px;margin-bottom:22px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--sec);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">Overall Progress</div>
+          <div style="font-size:16px;font-weight:700;letter-spacing:-0.02em">${done} of ${total} courses</div>
+        </div>
+        <div style="font-size:26px;font-weight:800;color:var(--green);letter-spacing:-0.03em">${pct}%</div>
+      </div>
+      ${barHTML(pct,'var(--green)',4)}
+      ${gapSkills.length>0?`<div style="font-size:12px;color:var(--sec);margin-top:10px">${gapSkills.length} gap courses recommended for you</div>`:''}
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      ${[['gap','Gap Skills'],['all','All Courses'],['done','Completed']].map(([f,l])=>
+        `<button class="filter-btn${learnFilter===f?' active':''}" onclick="learnFilter='${f}';renderLearn()">${l}</button>`
+      ).join('')}
+    </div>`;
+
+  if(shown.length===0){
+    html+=`<div style="text-align:center;padding:48px 0">
+      <div style="font-size:36px;margin-bottom:14px">✦</div>
+      <div class="display" style="font-size:17px;color:var(--text);margin-bottom:6px">${learnFilter==='done'?'Nothing done yet':'All gaps filled!'}</div>
+      <div style="color:var(--sec);font-size:13px">${learnFilter==='done'?'Complete a course and it appears here.':'You have all skills for your target roles.'}</div>
+    </div>`;
+  } else {
+    shown.forEach(sk=>{
+      const cr=COURSES[sk]; if(!cr) return;
+      const isDone=!!courseProgress[sk];
+      html+=`<div class="card" style="overflow:hidden;margin-bottom:14px;${isDone?'border-color:rgba(92,184,122,.3)':''}">
+        <div class="course-thumb" style="${isDone?'opacity:.7':''}">
+          <img src="${cr.thumb}" alt="${cr.title}" onerror="this.style.display='none'"/>
+          <div class="course-overlay"></div>
+          ${isDone?`<div style="position:absolute;top:10px;left:14px;background:var(--green);color:#fff;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700">✓ Done</div>`:''}
+          <div class="badge-yt">▶ YT</div>
+          <div class="course-meta">
+            <div class="skill-tag">${sk}</div>
+            <div class="course-title">${cr.title}</div>
+          </div>
+        </div>
+        <div style="padding:12px 16px;display:flex;gap:10px;align-items:center">
+          <div style="flex:1;display:flex;gap:8px;align-items:center">
+            <span style="font-size:12px;color:var(--sec)">⏱ ${cr.dur}</span>${pill(cr.level)}
+          </div>
+          <a href="${cr.url}" target="_blank" style="background:#CC0000;color:#fff;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap">Watch</a>
+          <button onclick="toggleCourse('${sk}')" style="background:${isDone?'var(--greenLo)':'var(--accentLo)'};color:${isDone?'var(--green)':'var(--accent)'};border:1px solid ${isDone?'rgba(92,184,122,.3)':'var(--accentMd)'};border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:inherit">${isDone?'Undo':'Done'}</button>
+        </div>
+      </div>`;
+    });
+  }
+
+  html+=`</div>`;
+  document.getElementById('tab-learn').innerHTML=html;
+  animateFills();
+}
+
+function toggleCourse(sk){
+  if(courseProgress[sk]) delete courseProgress[sk];
+  else courseProgress[sk]={ts:Date.now()};
+  LS.set(`sm_prog_${currentUser?.uid}`,courseProgress);
+  toast(courseProgress[sk]?`"${sk}" completed ✦`:`"${sk}" reset`,'success');
+  renderLearn();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROFILE TAB
+// ═══════════════════════════════════════════════════════════════
+let profileEditing=false;
+let editSkills=[], editLevels={};
+
+function renderProfile(){
+  const p=currentProfile||{}, s=p.skills||[], lv=p.skillLevels||{};
+  const rid=p.role||'designer', roleObj=ROLES.find(r=>r.id===rid);
+  const name=currentUser?.name||'User';
+  const matches=JOBS.filter(j=>calcMatch(s,lv,j).score>=55).length;
+  const best=JOBS.filter(j=>calcMatch(s,lv,j).score>=80).length;
+  const doneCount=Object.keys(courseProgress).length;
+
+  if(profileEditing){renderProfileEdit();return;}
+
+  let html=`<div style="padding:20px 20px">
+    <!-- Card -->
+    <div class="card" style="padding:24px 20px;margin-bottom:16px;text-align:center">
+      <div style="width:70px;height:70px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:0 auto 14px;box-shadow:0 8px 28px var(--accentMd)">${name[0]}</div>
+      <div class="display" style="font-size:22px;color:var(--text);margin-bottom:4px">${name}</div>
+      <div style="color:var(--sec);font-size:13px;margin-bottom:14px">${currentUser?.email||''}</div>
+      ${roleObj?`<span class="pill pill-accent" style="padding:5px 14px;font-size:12px">${roleObj.emoji} ${roleObj.label}</span>`:''}
+    </div>
+
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      ${[['Skills',s.length,'var(--accent)'],['Matches',matches,'var(--green)'],['Best',best,'var(--gold)'],['Done',doneCount,'var(--purple)']].map(([l,v,c])=>`
+      <div class="card-sm" style="padding:13px 8px;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:${c};margin-bottom:2px;letter-spacing:-0.02em">${v}</div>
+        <div style="font-size:10px;color:var(--ter);font-weight:600;text-transform:uppercase;letter-spacing:.05em">${l}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- Skills -->
+    <div class="card" style="padding:18px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:700;letter-spacing:-0.01em">My Skills</div>
+        <span onclick="startEditProfile()" style="font-size:13px;color:var(--accent);font-weight:500;cursor:pointer">Edit</span>
+      </div>
+      ${s.length>0?`<div style="display:flex;flex-wrap:wrap;gap:8px">${s.map(sk=>`<span style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:99px;background:var(--raised);border:1px solid var(--border);font-size:13px;font-weight:500">${sk}<span style="font-size:10px;color:var(--sec)">${lv[sk]||'Beginner'}</span></span>`).join('')}</div>`
+      :`<div style="color:var(--ter);font-size:13px;padding:8px 0">No skills added — tap Edit to get started.</div>`}
+    </div>
+
+    <!-- Settings -->
+    <div class="card" style="overflow:hidden">
+      <div class="settings-row" onclick="startEditProfile()">
+        <div class="settings-icon">🎯</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px">Update Skills</div><div style="color:var(--ter);font-size:12px;margin-top:2px">Edit your skill profile</div></div>
+        <span style="color:var(--ter);font-size:16px">›</span>
+      </div>
+      <div class="settings-row">
+        <div class="settings-icon">🔔</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px">Notifications</div><div style="color:var(--ter);font-size:12px;margin-top:2px">Manage job alerts</div></div>
+        <span style="color:var(--ter);font-size:16px">›</span>
+      </div>
+      <div class="settings-row">
+        <div class="settings-icon">🔒</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px">Privacy</div><div style="color:var(--ter);font-size:12px;margin-top:2px">Control your data</div></div>
+        <span style="color:var(--ter);font-size:16px">›</span>
+      </div>
+      <div class="settings-row" onclick="signOut()" style="border-bottom:none">
+        <div class="settings-icon" style="background:var(--accentLo)">✦</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px;color:var(--accent)">Sign Out</div><div style="color:var(--ter);font-size:12px;margin-top:2px">Log out of your account</div></div>
+        <span style="color:var(--ter);font-size:16px">›</span>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('tab-profile').innerHTML=html;
+}
+
+function startEditProfile(){
+  editSkills=[...(currentProfile?.skills||[])];
+  editLevels={...(currentProfile?.skillLevels||{})};
+  profileEditing=true;
+  renderProfileEdit();
+}
+
+function renderProfileEdit(){
+  const rid=currentProfile?.role||'designer';
+  const roleSkills=SKILLS_BY_ROLE[rid]||[];
+  let html=`<div style="padding:20px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <div class="display" style="font-size:22px;color:var(--text)">Edit Skills</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="cancelEditProfile()" class="btn-muted" style="padding:9px 16px;font-size:13px;border-radius:99px">Cancel</button>
+        <button onclick="saveProfileEdit()" class="btn-primary" style="padding:9px 16px;font-size:13px">Save</button>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--sec);margin-bottom:12px">Tap to add or remove:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">`;
+  roleSkills.forEach(sk=>{
+    const sel=editSkills.includes(sk);
+    html+=`<div class="chip${sel?' selected':''}" onclick="toggleEditSkill(this,'${sk}')">${sk}</div>`;
+  });
+  html+=`</div>`;
+
+  if(editSkills.length>0){
+    html+=`<div style="font-size:12px;color:var(--sec);margin-bottom:12px">Set proficiency:</div>
+    <div style="display:flex;flex-direction:column;gap:12px">`;
+    editSkills.forEach(sk=>{
+      const cur=editLevels[sk]||'Beginner';
+      html+=`<div class="card-sm" style="padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:14px;font-weight:600;color:var(--text)">${sk}</span>
+          <span style="font-size:12px;color:var(--accent);font-weight:600">${cur}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          ${SKILL_LEVELS.map(lv=>`<button class="level-btn${cur===lv?' active':''}" onclick="setEditLevel('${sk}','${lv}')">${lv}</button>`).join('')}
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+
+  html+=`</div>`;
+  document.getElementById('tab-profile').innerHTML=html;
+}
+
+function toggleEditSkill(el, sk){
+  if(editSkills.includes(sk)) editSkills=editSkills.filter(x=>x!==sk);
+  else{editSkills.push(sk);if(!editLevels[sk]) editLevels[sk]='Beginner';}
+  renderProfileEdit();
+}
+
+function setEditLevel(sk, lv){
+  editLevels[sk]=lv;
+  renderProfileEdit();
+}
+
+function saveProfileEdit(){
+  currentProfile={...currentProfile,skills:editSkills,skillLevels:editLevels};
+  LS.set(`sm_profile_${currentUser?.uid}`,currentProfile);
+  profileEditing=false;
+  toast('Profile updated ✦','success');
+  renderProfile();
+}
+
+function cancelEditProfile(){profileEditing=false;renderProfile();}
+
+function signOut(){
+  LS.set('sm_sess',null);
+  currentUser=null;currentProfile=null;savedJobs=[];courseProgress=[];
+  authMode='login';setAuthMode('login');
+  showScreen('auth');
+  toast('Signed out','info');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+function init(){
+  isDark=LS.get('sm_dark')!==false;
+  document.body.className=isDark?'dark':'light';
+  document.getElementById('theme-btn').textContent=isDark?'🌙':'☀';
+  document.getElementById('theme-btn').style.display='none';
+
+  setTimeout(()=>{
+    const sess=LS.get('sm_sess');
+    if(!sess){showScreen('auth');document.getElementById('theme-btn').style.display='flex';return;}
+    currentUser=sess;
+    savedJobs=LS.get(`sm_saved_${sess.uid}`)||[];
+    courseProgress=LS.get(`sm_prog_${sess.uid}`)||{};
+    const prof=LS.get(`sm_profile_${sess.uid}`);
+    document.getElementById('theme-btn').style.display='flex';
+    if(prof){currentProfile=prof;showMain();}
+    else{obStep=0;obRole='designer';obSkills=[];obLevels={};renderOnboard();showScreen('onboard');}
+  },1600);
+}
+
+init();
+</script>
+</body>
+</html>
